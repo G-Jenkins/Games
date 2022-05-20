@@ -1,101 +1,96 @@
-'use strict';
+"use strict";
 
-/* 
-console.log(document.querySelector('.message').textContent);
-document.querySelector('.message').textContent = 'Correct Number!'
-console.log(document.querySelector('.message').textContent);
+// Selecting elements
+const player0El = document.querySelector(".player--0");
+const player1El = document.querySelector(".player--1");
 
-document.querySelector('.number').textContent = 13;
-document.querySelector('.score').textContent = 10;
+const score0El = document.querySelector("#score--0");
+const score1El = document.getElementById("score--1");
+const diceEl = document.querySelector(".dice");
+const current0El = document.getElementById("current--0");
+const current1El = document.getElementById("current--1");
+const btnNew = document.querySelector(".btn--new");
+const btnRoll = document.querySelector(".btn--roll");
+const btnHold = document.querySelector(".btn--hold ");
 
-document.querySelector('.guess').value = 21;
-console.log(document.querySelector('.guess').value); 
- */ 
+let currentScore, scores, activePlayer, playing;
+const init = function () {
+  scores = [0, 0];
+  currentScore = 0;
+  activePlayer = 0;
+  playing = true;
 
-let secretNumber = Math.trunc(Math.random()*20) + 1;
-let score = 20;
-let highscore = 0;
+  score0El.textContent = 0;
+  score1El.textContent = 0;
+  current0El.textContent = 0;
+  current1El.textContent = 0;
 
-const displayMessage = function (message) {
-    document.querySelector('.message').textContent = message;
-}
+  diceEl.classList.add("hidden");
+  player0El.classList.remove("player--winner");
+  player1El.classList.remove("player--winner");
+  player0El.classList.add("player--active");
+  player1El.classList.remove("player--active");
+};
+init();
 
-document.querySelector('.check').addEventListener('click', function() {
-    let guess = Number(document.querySelector('.guess').value);
-    console.log(guess, typeof guess);
-        // When there's no input
-    if(!guess) {
-        // document.querySelector('.message').textContent = 'No number!';
-        displayMessage('No number!'); 
-        // When player wins
-    } else if (guess === secretNumber) {
-        // document.querySelector('.message').textContent = 'Correct Number!';
-        displayMessage('Correct Number!')
+const switchPlayer = function () {
+  document.getElementById(`current--${activePlayer}`).textContent = 0;
+  currentScore = 0;
+  activePlayer = activePlayer === 0 ? 1 : 0;
+  player0El.classList.toggle("player--active");
+  player1El.classList.toggle("player--active");
+};
 
-document.querySelector('.number').textContent = secretNumber;
+// Roll dice functions
+btnRoll.addEventListener("click", function () {
+  if (playing) {
+    // 1. Generate random button roll
+    const dice = Math.trunc(Math.random() * 6) + 1;
 
-        document.querySelector('body').style.backgroundColor = "#EEE"
-        document.querySelector('.number').style.width = "30rem";
-
-        if(score > highscore) {
-            highscore = score;
-            document.querySelector('.highscore').textContent = highscore;
-        }
-    }   // When guess is wrong
-    else if(guess !== secretNumber) {
-        if(score > 1) {
-            // document.querySelector('.message').textContent = guess > secretNumber ? 'Too high!' : 'Too low!' ;
-            displayMessage(guess > secretNumber ? 'Too high!' : 'Too low!');
-            score-- ; 
-            document.querySelector('.score').textContent = score;
-            } else {
-                // document.querySelector('.message').textContent = "You lost the game!"
-                displayMessage('You lost the game!');
-    
-            }
-
-
-      }
-
-      /*
-      // WHen guess is too high
-      else if (guess > secretNumber) {
-        if(score > 1) {
-        document.querySelector('.message').textContent = 'Too high!';
-        score-- ; 
-        document.querySelector('.score').textContent = score;
-        } else {
-            document.querySelector('.message').textContent = "You lost the game!"
-
-        }
-
-    }   // WHen guess is too low
-    else if (guess < secretNumber) {
-        if(score > 1) {
-        document.querySelector('.message').textContent = 'Too low!';
-        score--;
-        document.querySelector('.score').textContent = score;
+    // 2. Display dice
+    diceEl.classList.remove("hidden");
+    diceEl.src = `dice-${dice}.png`;
+    // 3. Check for rolled 1: if true switch to next player
+    if (dice !== 1) {
+      // ADd dice to current score
+      currentScore += dice;
+      document.getElementById(`current--${activePlayer}`).textContent =
+        currentScore;
     } else {
-        document.querySelector('.message').textContent = "You lost the game!"
-
+      // Switch to next player
+      switchPlayer();
     }
-}
-    */
+  }
 });
 
-    document.querySelector('.again').addEventListener('click', function() {
+btnHold.addEventListener("click", function () {
+  if (playing) {
+    // 1. First add current score to active player's score
+    scores[activePlayer] += currentScore;
 
-        score = 20;
-        secretNumber = Math.trunc(Math.random()*20) + 1;
+    // scores[1] = scores[1] + currentScore
+    document.getElementById(`score--${activePlayer}`).textContent =
+      scores[activePlayer];
 
-        // document.querySelector('.message').textContent = 'Start guessing...';
-        displayMessage('Start guessing...');
-        document.querySelector('.score').textContent = score;
-        document.querySelector('.number').textContent = "?";
-        document.querySelector(".guess").value = "";
+    // 2. Check score is already >= {} 100
+    if (scores[activePlayer] >= 100) {
+      // Finish the game
+      playing = false;
+      diceEl.classList.add("hidden");
 
-        document.querySelector('body').style.backgroundColor = "#222";
-        document.querySelector('.number').style.width = '15rem';
+      document
+        .querySelector(`.player--${activePlayer}`)
+        .classList.add("player--winner");
+      document
+        .querySelector(`.player--${activePlayer}`)
+        .classList.remove("player--active");
+    } else {
+      // Switch to next player
+      switchPlayer();
+    }
+  }
+});
 
-    })
+// RESET
 
+btnNew.addEventListener("click", init);
